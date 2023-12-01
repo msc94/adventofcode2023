@@ -10,4 +10,5 @@ path = "src/utils/utils.rs"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+anyhow = { version = "1.0.75", features = ["backtrace"] }
 itertools = "0.12.0"
