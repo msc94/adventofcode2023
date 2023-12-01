@@ -1,0 +1,17 @@
+[package]
+name = "adventofcode2023"
+version = "0.1.0"
+edition = "2021"
+
+[lib]
+name = "utils"
+path = "src/utils/utils.rs"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+itertools = "0.7.8"
+anyhow = "1.0.66"
+nom = "7.1.1"
+regex = "1.7.0"
+petgraph = "0.6.2"
