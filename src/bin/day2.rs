@@ -69,7 +69,7 @@ fn parse_game(input: &str) -> IResult<&str, Game> {
 }
 
 fn main() -> Result<()> {
-    let lines = get_lines("day2_example.txt").unwrap();
+    let lines = get_lines("day2.txt").unwrap();
     dbg!(&lines);
 
     let mut result = 0;
@@ -82,32 +82,21 @@ fn main() -> Result<()> {
         }
         let game = parsed.1;
 
-        println!("{:#?}", game);
-
-        let mut possible = true;
-
-        for sequence in &game.sequences {
-            let counts = sequence.iter().fold(HashMap::new(), |mut acc, pair| {
-                *acc.entry(&pair.color).or_insert(0) += pair.count;
+        let maximums = game
+            .sequences
+            .iter()
+            .flatten()
+            .fold(HashMap::new(), |mut acc, pair| {
+                let entry = acc.entry(&pair.color).or_insert(0);
+                if *entry < pair.count {
+                    *entry = pair.count;
+                }
                 acc
             });
 
-            if counts.get(&Color::Red).unwrap_or(&0) > &12
-                || counts.get(&Color::Green).unwrap_or(&0) > &13
-                || counts.get(&Color::Blue).unwrap_or(&0) > &14
-            {
-                possible = false;
-            }
-
-            dbg!(&counts);
-        }
-
-        if possible {
-            println!("Possible");
-            result += game.game_number;
-        } else {
-            println!("Not possible");
-        }
+        result += maximums.get(&Color::Red).unwrap_or(&0)
+            * maximums.get(&Color::Green).unwrap_or(&0)
+            * maximums.get(&Color::Blue).unwrap_or(&0)
     }
 
     println!("{result}");
