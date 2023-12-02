@@ -1,6 +1,6 @@
-use std::collections::BTreeMap;
+use std::collections::HashMap;
 
-use anyhow::Result;
+use anyhow::{anyhow, Result};
 use nom::{
     bytes::complete::tag,
     character::complete::{alpha1, multispace1, space0, u32},
@@ -11,14 +11,14 @@ use nom::{
 };
 use utils::get_lines;
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Eq, Hash, PartialEq)]
 pub enum Color {
     Blue,
     Red,
     Green,
 }
 
-#[derive(Debug, PartialEq)]
+#[derive(Debug, Eq, Hash, PartialEq)]
 pub struct CountColorPair {
     color: Color,
     count: u32,
@@ -72,8 +72,10 @@ fn main() -> Result<()> {
     let lines = get_lines("day2_example.txt").unwrap();
     dbg!(&lines);
 
+    let mut result = 0;
+
     for line in lines {
-        let parsed = parse_game(&line)?;
+        let parsed = parse_game(&line).map_err(|_| anyhow!("Parsing of {} failed", line))?;
 
         if !parsed.0.is_empty() {
             anyhow::bail!("Input left after parsing");
@@ -81,7 +83,34 @@ fn main() -> Result<()> {
         let game = parsed.1;
 
         println!("{:#?}", game);
+
+        let mut possible = true;
+
+        for sequence in &game.sequences {
+            let counts = sequence.iter().fold(HashMap::new(), |mut acc, pair| {
+                *acc.entry(&pair.color).or_insert(0) += pair.count;
+                acc
+            });
+
+            if counts.get(&Color::Red).unwrap_or(&0) > &12
+                || counts.get(&Color::Green).unwrap_or(&0) > &13
+                || counts.get(&Color::Blue).unwrap_or(&0) > &14
+            {
+                possible = false;
+            }
+
+            dbg!(&counts);
+        }
+
+        if possible {
+            println!("Possible");
+            result += game.game_number;
+        } else {
+            println!("Not possible");
+        }
     }
+
+    println!("{result}");
 
     Ok(())
 }

@@ -21,7 +21,7 @@ fn main() -> Result<()> {
                 matches.insert(index, i);
             }
 
-            if let Some(index) = l.find(&s) {
+            if let Some(index) = l.find(s) {
                 matches.insert(index, i);
             }
 
