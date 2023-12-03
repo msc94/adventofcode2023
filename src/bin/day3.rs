@@ -1,7 +1,7 @@
 use itertools::iproduct;
 use std::collections::{HashMap, HashSet};
 
-use anyhow::{anyhow, Result};
+use anyhow::Result;
 use utils::get_lines;
 
 fn parse(lines: &Vec<String>) -> Vec<Vec<char>> {
@@ -15,9 +15,9 @@ fn main() -> Result<()> {
 
     let get = |x: i64, y: i64| -> Option<char> {
         if x < 0 || y < 0 || x >= w || y >= h {
-            return None;
+            None
         } else {
-            return Some(chars[y as usize][x as usize]);
+            Some(chars[y as usize][x as usize])
         }
     };
 
@@ -31,14 +31,8 @@ fn main() -> Result<()> {
 
             if let Some(d) = current.to_digit(10) {
                 iproduct!(-1..=1, -1..=1)
-                    .filter_map(|(dx, dy)| {
-                        if let Some(c) = get(x + dx, y + dy) {
-                            Some((c, x + dx, y + dy))
-                        } else {
-                            None
-                        }
-                    })
-                    .filter(|(c, x, y)| *c == '*')
+                    .filter_map(|(dx, dy)| get(x + dx, y + dy).map(|c| (c, x + dx, y + dy)))
+                    .filter(|(c, _, _)| *c == '*')
                     .for_each(|(_, x, y)| {
                         current_adjacent.insert((x, y));
                     });
@@ -46,14 +40,12 @@ fn main() -> Result<()> {
                 let instance = current_number.get_or_insert(0);
                 *instance *= 10;
                 *instance += d as i64;
-            } else {
-                if let Some(n) = current_number {
-                    for a in current_adjacent {
-                        adjacent.entry(a).or_insert(vec![]).push(n);
-                    }
-                    current_adjacent = HashSet::new();
-                    current_number = None;
+            } else if let Some(n) = current_number {
+                for a in current_adjacent {
+                    adjacent.entry(a).or_insert(vec![]).push(n);
                 }
+                current_adjacent = HashSet::new();
+                current_number = None;
             }
         }
     }
