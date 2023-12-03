@@ -1,13 +1,8 @@
 use itertools::iproduct;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use anyhow::{anyhow, Result};
 use utils::get_lines;
-
-enum State {
-    NotNumber,
-    Number,
-}
 
 fn parse(lines: &Vec<String>) -> Vec<Vec<char>> {
     lines.iter().map(|x| x.chars().collect()).collect()
@@ -26,39 +21,50 @@ fn main() -> Result<()> {
         }
     };
 
-    let mut sum: i64 = 0;
     let mut current_number = None;
-    let mut adjacent = false;
+    let mut current_adjacent = HashSet::new();
+    let mut adjacent = HashMap::new();
 
     for y in 0..h {
         for x in 0..w {
             let current = get(x, y).expect("A char");
-            // println!("Looking at {x} {y} -> {current}, sum {sum}, current_number {current_number:?}, adjacent {adjacent}");
 
             if let Some(d) = current.to_digit(10) {
-                let current_adjacent = iproduct!(-1..=1, -1..=1)
-                    .filter_map(|(dx, dy)| get(x + dx, y + dy))
-                    .any(|c| c != '.' && !c.is_digit(10));
+                iproduct!(-1..=1, -1..=1)
+                    .filter_map(|(dx, dy)| {
+                        if let Some(c) = get(x + dx, y + dy) {
+                            Some((c, x + dx, y + dy))
+                        } else {
+                            None
+                        }
+                    })
+                    .filter(|(c, x, y)| *c == '*')
+                    .for_each(|(_, x, y)| {
+                        current_adjacent.insert((x, y));
+                    });
 
-                if current_adjacent {
-                    adjacent = true;
-                }
-
-                let value = current_number.get_or_insert(0);
-                *value *= 10;
-                *value += d as i64;
+                let instance = current_number.get_or_insert(0);
+                *instance *= 10;
+                *instance += d as i64;
             } else {
-                if adjacent {
-                    sum += current_number.expect("A number");
+                if let Some(n) = current_number {
+                    for a in current_adjacent {
+                        adjacent.entry(a).or_insert(vec![]).push(n);
+                    }
+                    current_adjacent = HashSet::new();
+                    current_number = None;
                 }
-
-                current_number = None;
-                adjacent = false;
             }
         }
     }
 
-    println!("sum {sum}");
+    let sum: i64 = adjacent
+        .iter()
+        .filter(|(_, v)| v.len() == 2)
+        .map(|(_, v)| v.iter().product::<i64>())
+        .sum();
+
+    println!("{sum}");
 
     Ok(())
 }
