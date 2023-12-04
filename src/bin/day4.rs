@@ -1,4 +1,4 @@
-use std::collections::{hash_map::RandomState, HashSet};
+use std::collections::{hash_map::RandomState, HashMap, HashSet};
 
 use anyhow::{anyhow, bail, Result};
 use nom::{
@@ -59,16 +59,22 @@ fn main() -> Result<()> {
         .collect::<Result<Vec<Game>>>()?;
     dbg!(&cards);
 
-    let winning: Vec<_> = cards.iter().map(Game::count_winning).collect();
-    dbg!(&winning);
+    let mut counts = vec![1; cards.len()];
 
-    let powers: Vec<_> = winning
-        .iter()
-        .map(|x| if *x == 0 { 0 } else { 2_i32.pow(*x as u32 - 1) })
-        .collect();
-    dbg!(&powers);
+    for (i, g) in cards.iter().enumerate() {
+        let winning = g.count_winning();
+        println!("Card {} has {} copies and {} wins", i, counts[i], winning);
+        for j in i + 1..i + 1 + winning {
+            if j < counts.len() {
+                counts[j] += counts[i];
+            }
+        }
+    }
 
-    println!("{}", powers.iter().sum::<i32>());
+    dbg!(&counts);
+
+    let sum: i32 = counts.iter().sum();
+    println!("sum {}", sum);
 
     Ok(())
 }
