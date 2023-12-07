@@ -11,5 +11,6 @@ path = "src/utils/utils.rs"
 
 [dependencies]
 anyhow = { version = "1.0.75", features = ["backtrace"] }
+indicatif = "0.17.7"
 itertools = "0.12.0"
 nom = "7.1.3"
