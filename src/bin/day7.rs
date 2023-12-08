@@ -43,7 +43,7 @@ impl Hand {
                         'Q' => 12,
                         'K' => 13,
                         'A' => 14,
-                        default => panic!("Unexpected char {}", c),
+                        _ => panic!("Unexpected char {}", c),
                     }
                 }
             })
@@ -54,9 +54,26 @@ impl Hand {
     fn get_type(&self) -> Type {
         let mut counts = HashMap::new();
 
-        for c in self.hand.chars() {
+        let (jokers, non_jokers): (Vec<char>, Vec<char>) =
+            self.hand.to_owned().chars().partition(|c| *c == 'J');
+
+        for c in non_jokers {
             *counts.entry(c).or_insert(0) += 1;
         }
+
+        if counts.is_empty() {
+            // Only jokers
+            return Type::FiveOfAKind;
+        }
+
+        let max = counts
+            .iter()
+            .max_by(|a, b| a.cmp(b))
+            .expect("a maximum value element")
+            .0
+            .to_owned();
+
+        *counts.get_mut(&max).unwrap() += jokers.len();
 
         dbg!(&self.hand, &counts);
 
@@ -129,12 +146,6 @@ fn main() -> Result<()> {
         hands.push(parse(&line).map_err(|e| anyhow!("{}", e))?.1);
     }
 
-    dbg!(&hands);
-
-    for hand in &hands {
-        dbg!(hand, hand.get_type());
-    }
-
     hands.sort_by(|a, b| {
         if a.get_type() < b.get_type() {
             return Ordering::Less;
@@ -154,6 +165,8 @@ fn main() -> Result<()> {
 
         return Ordering::Equal;
     });
+
+    dbg!(&hands);
 
     let result: usize = hands
         .iter()
