@@ -5,7 +5,7 @@ use nom::{
     bytes::complete::{tag, take_till, take_until},
     character::is_alphabetic,
     sequence::terminated,
-    IResult,
+    AsBytes, IResult,
 };
 use utils::get_lines;
 
@@ -54,31 +54,42 @@ fn main() -> Result<()> {
 
     dbg!(&directions, &entries);
 
-    let mut current = "AAA";
+    let mut current: Vec<String> = entries
+        .keys()
+        .filter(|k| k.as_bytes()[2] == b'A')
+        .map(|x| x.to_owned())
+        .collect();
+
+    let done = |nodes: &Vec<String>| nodes.iter().all(|x| x.as_bytes()[2] == b'Z');
+
     let mut iteration = 0usize;
 
-    while current != "ZZZ" {
+    while !done(&current) {
         let index = iteration % directions.len();
         let direction = directions[index];
 
-        println!(
-            "Index {}, direction {}, current {}",
-            index, direction, current
-        );
+        let new_current = current
+            .iter()
+            .map(|c| {
+                let map_entry = entries.get(c).unwrap();
 
-        let map_entry = entries.get(current).unwrap();
+                match direction {
+                    'L' => &map_entry.left_direction,
+                    'R' => &map_entry.right_direction,
+                    default => {
+                        panic!("Unexpected direction {}", default);
+                    }
+                }
+            })
+            .map(|x| x.to_owned())
+            .collect();
 
-        match direction {
-            'L' => {
-                current = &map_entry.left_direction;
-            }
-            'R' => {
-                current = &map_entry.right_direction;
-            }
-            default => {
-                panic!("Unexpected direction {}", default);
-            }
-        }
+        // println!(
+        //     "Index {}, direction {}, current {:?}, new_current {:?}",
+        //     index, direction, current, new_current
+        // );
+
+        current = new_current;
         iteration += 1;
     }
 
