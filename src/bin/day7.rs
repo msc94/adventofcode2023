@@ -26,10 +26,31 @@ enum Type {
 #[derive(Debug)]
 struct Hand {
     hand: String,
-    bid: i64,
+    bid: u64,
 }
 
 impl Hand {
+    fn get_as_tuple(&self) -> (i32, i32, i32, i32, i32) {
+        self.hand
+            .chars()
+            .map(|c| {
+                if let Some(digit) = c.to_digit(10) {
+                    return digit as i32;
+                } else {
+                    match c {
+                        'T' => 10,
+                        'J' => 11,
+                        'Q' => 12,
+                        'K' => 13,
+                        'A' => 14,
+                        default => panic!("Unexpected char {}", c),
+                    }
+                }
+            })
+            .next_tuple()
+            .unwrap()
+    }
+
     fn get_type(&self) -> Type {
         let mut counts = HashMap::new();
 
@@ -90,7 +111,7 @@ impl Hand {
 
 fn parse(line: &str) -> IResult<&str, Hand> {
     let (input, hand) = terminated(take(5u32), tag(" "))(line)?;
-    let (input, bid) = nom::character::complete::i64(input)?;
+    let (input, bid) = nom::character::complete::u64(input)?;
     Ok((
         input,
         Hand {
@@ -101,7 +122,7 @@ fn parse(line: &str) -> IResult<&str, Hand> {
 }
 
 fn main() -> Result<()> {
-    let lines = get_lines("day7_example.txt")?;
+    let lines = get_lines("day7.txt")?;
 
     let mut hands = vec![];
     for line in lines {
@@ -123,7 +144,24 @@ fn main() -> Result<()> {
             return Ordering::Greater;
         }
 
+        if a.get_as_tuple() < b.get_as_tuple() {
+            return Ordering::Less;
+        }
+
+        if a.get_as_tuple() > b.get_as_tuple() {
+            return Ordering::Greater;
+        }
+
+        return Ordering::Equal;
     });
+
+    let result: usize = hands
+        .iter()
+        .enumerate()
+        .map(|(i, h)| (i + 1) * h.bid as usize)
+        .sum();
+
+    println!("{}", result);
 
     Ok(())
 }
