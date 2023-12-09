@@ -35,14 +35,11 @@ impl History {
     }
 
     fn extrapolate(&mut self) -> i64 {
-        println!();
         let mut current_diff = 0;
         for values in self.values.iter_mut().rev() {
-            println!("Extrapolation {:?} with {}", &values, current_diff);
             let new_value = values.front().expect("at least one element") - current_diff;
             values.push_front(new_value);
             current_diff = new_value;
-            println!(" -> {:?}", values);
         }
         return current_diff;
     }
@@ -67,7 +64,6 @@ fn main() -> Result<()> {
         sum += h.extrapolate();
     }
 
-    dbg!(&histories);
     println!("{}", sum);
 
     Ok(())
