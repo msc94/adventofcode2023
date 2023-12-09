@@ -1,7 +1,9 @@
+use std::collections::VecDeque;
+
 use anyhow::{anyhow, Result};
 use utils::get_lines;
 
-fn differences(vec: &Vec<i64>) -> Vec<i64> {
+fn differences(vec: &VecDeque<i64>) -> VecDeque<i64> {
     vec.iter()
         .zip(vec.iter().skip(1))
         .map(|(current, following)| following - current)
@@ -10,13 +12,13 @@ fn differences(vec: &Vec<i64>) -> Vec<i64> {
 
 #[derive(Debug)]
 struct History {
-    values: Vec<Vec<i64>>,
+    values: Vec<VecDeque<i64>>,
 }
 
 impl History {
     fn new(values: Vec<i64>) -> Self {
         History {
-            values: vec![values],
+            values: Vec::from([VecDeque::from(values)]),
         }
     }
 
@@ -37,8 +39,8 @@ impl History {
         let mut current_diff = 0;
         for values in self.values.iter_mut().rev() {
             println!("Extrapolation {:?} with {}", &values, current_diff);
-            let new_value = values.last().expect("at least one element") + current_diff;
-            values.push(new_value);
+            let new_value = values.front().expect("at least one element") - current_diff;
+            values.push_front(new_value);
             current_diff = new_value;
             println!(" -> {:?}", values);
         }
