@@ -5,14 +5,6 @@ use std::{
 };
 
 use anyhow::Result;
-use petgraph::{
-    algo::tarjan_scc,
-    data::Build,
-    dot::{Config, Dot},
-    graph::NodeIndex,
-    visit::{Dfs, Visitable, Walker},
-    Graph, Undirected,
-};
 use utils::get_lines;
 
 type NodeId = (i64, i64);
@@ -32,8 +24,6 @@ fn dfs(
     }
 
     visited.insert(*node);
-
-    println!("Visiting {:?}", node);
 
     if let Some(neighbor_list) = graph.get(node) {
         for neighbor in neighbor_list {
@@ -55,13 +45,15 @@ fn connect_nodes(graph: &mut HashMap<NodeId, Vec<NodeId>>, a: &NodeId, b: &NodeI
 
 fn main() -> Result<()> {
     let input = get_lines("day10.txt")?;
+    let input: Vec<Vec<char>> = input.iter().map(|line| line.chars().collect()).collect();
+
     dbg!(&input);
 
     let mut graph = HashMap::new();
     let mut start = None;
 
     input.iter().enumerate().for_each(|(y, line)| {
-        line.chars().enumerate().for_each(|(x, char)| {
+        line.iter().enumerate().for_each(|(x, char)| {
             let x = x as i64;
             let y = y as i64;
             match char {
@@ -105,8 +97,12 @@ fn main() -> Result<()> {
     let path = dfs(&graph, &mut visited, &start, &start);
 
     if let Some(path) = path {
-        println!("path {:?}", path);
-        println!("{}", path.len() / 2);
+        for node in &path {
+            let char = input[node.1 as usize][node.0 as usize];
+            print!(" -> {:?} {}", node, char);
+        }
+        println!();
+        println!("Path length {}", path.len());
     }
 
     Ok(())
